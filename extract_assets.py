@@ -75,7 +75,7 @@ def main():
         if (os.path.exists("Extract")):
             shutil.rmtree("Extract")
 
-        BuildOTR("../mm/assets/xml/", rom.file_path, zapd_exe=args.zapd_exe, genHeaders=args.gen_headers)
+        BuildOTR("../mm/assets/xml/" + rom.version.xml_ver + "/", rom.file_path, zapd_exe=args.zapd_exe, genHeaders=args.gen_headers)
 
 if __name__ == "__main__":
     main()
