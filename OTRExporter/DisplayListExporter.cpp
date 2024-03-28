@@ -8,6 +8,7 @@
 #include <libultraship/libultra/gbi.h>
 #include <Globals.h>
 #include <iostream>
+#include <regex>
 #include <string>
 #include "MtxExporter.h"
 #include <Utils/DiskFile.h>
@@ -51,7 +52,7 @@ void OTRExporter_DisplayList::Save(ZResource* res, const fs::path& outPath, Bina
 
 	//printf("Exporting DList %s\n", dList->GetName().c_str());
 
-	WriteHeader(res, outPath, writer, LUS::ResourceType::DisplayList);
+	WriteHeader(res, outPath, writer, static_cast<uint32_t>(LUS::ResourceType::DisplayList));
 
 	while (writer->GetBaseAddress() % 8 != 0)
 		writer->Write((uint8_t)0xFF);
@@ -412,12 +413,28 @@ void OTRExporter_DisplayList::Save(ZResource* res, const fs::path& outPath, Bina
 
 				Gfx value;
 
-				u32 dListVal = (data & 0x0FFFFFFF) + 1;
+				u32 segNum = GETSEGNUM(data);
+				u32 segOffset = GETSEGOFFSET(data);
 
-				if (pp != 0)
-					value = {gsSPBranchList(dListVal)};
-				else
-					value = {gsSPDisplayList(dListVal)};
+				// Use regular DL opcode for 0 offsets
+				if (segOffset == 0) {
+					u32 dListVal = (data & 0x0FFFFFFF) + 1;
+
+					if (pp != 0)
+						value = {gsSPBranchList(dListVal)};
+					else
+						value = {gsSPDisplayList(dListVal)};
+				} else {
+					// Convert the offset value to an index value by diving by the original size for Gfx on hardware
+					// Adding 1 for seg addr flow will be handled on the renderer side
+					u32 dListVal = (segNum << 24) | (segOffset / (sizeof(u32) * 2));
+
+					if (pp != 0)
+						value = {gsSPBranchListIndex(dListVal)};
+					else
+						value = {gsSPDisplayListIndex(dListVal)};
+				}
+
 
 				word0 = value.words.w0;
 				word1 = value.words.w1;
@@ -863,7 +880,7 @@ void OTRExporter_DisplayList::Save(ZResource* res, const fs::path& outPath, Bina
 						}
 
 						// OTRTODO: Once we aren't relying on text representations, we should call ArrayExporter...
-						OTRExporter::WriteHeader(nullptr, "", &vtxWriter, LUS::ResourceType::Array);
+						OTRExporter::WriteHeader(nullptr, "", &vtxWriter, static_cast<uint32_t>(LUS::ResourceType::Array));
 
 						vtxWriter.Write((uint32_t)ZResourceType::Vertex);
 						vtxWriter.Write((uint32_t)arrCnt);
@@ -968,7 +985,7 @@ std::string OTRExporter_DisplayList::GetPrefix(ZResource* res)
 	std::string oName = res->parent->GetOutName();
 	std::string prefix = "";
 	std::string xmlPath = StringHelper::Replace(res->parent->GetXmlFilePath().string(), "\\", "/");
-
+	// BENTODO bring in the existing OTRExporter changes from SoHs
 	if (StringHelper::Contains(oName, "_scene") || StringHelper::Contains(oName, "_room") || (StringHelper::Contains(res->parent->GetXmlFilePath().string(), "/scenes/") || StringHelper::Contains(res->parent->GetXmlFilePath().string(), "\\scenes\\"))) {
 		prefix = "scenes";
         if (Globals::Instance->rom->IsMQ()) {

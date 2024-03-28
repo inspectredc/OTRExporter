@@ -15,6 +15,7 @@ set(Header_Files
     "CutsceneExporter.h"
     "DisplayListExporter.h"
     "Exporter.h"
+    "ExporterArchive.h"
     "Main.h"
     "MtxExporter.h"
     "PathExporter.h"
@@ -44,6 +45,7 @@ set(Source_Files
     "CutsceneExporter.cpp"
     "DisplayListExporter.cpp"
     "Exporter.cpp"
+    "ExporterArchive.cpp"
     "Main.cpp"
     "MtxExporter.cpp"
     "PathExporter.cpp"
@@ -122,8 +124,6 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
 			">"
 			"_CONSOLE;"
 			"_CRT_SECURE_NO_WARNINGS;"
-			"UNICODE;"
-			"_UNICODE"
 			STORMLIB_NO_AUTO_LINK
 		)
 	elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "Win32")
@@ -137,8 +137,6 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
 			">"
 			"WIN32;"
 			"_CONSOLE;"
-			"UNICODE;"
-			"_UNICODE"
 			STORMLIB_NO_AUTO_LINK
 		)
 	endif()
@@ -154,8 +152,6 @@ if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU|Clang|AppleClang")
 		">"
 		"_CONSOLE;"
 		"_CRT_SECURE_NO_WARNINGS;"
-		"UNICODE;"
-		"_UNICODE"
 	)
 endif()
 ################################################################################
